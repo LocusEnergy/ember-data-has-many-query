@@ -59,7 +59,7 @@ export default Ember.Mixin.create({
     this.set(_queryIdPropertyName, currentQueryId);
 
     //get the relationship value, reloading if necessary
-    var value = this.reloadRelationship(propertyName);
+    var value = this.reloadRelationship(propertyName, params.reload);
 
     //return the promise, clearing the query params and ajax options properties
     return value.catch(function (error) {
@@ -84,7 +84,7 @@ export default Ember.Mixin.create({
    * @param propertyName Relationship property name
    * @returns {Ember.RSVP.Promise}
    */
-  reloadRelationship: function (propertyName) {
+  reloadRelationship: function (propertyName, forceReload) {
     //find out what kind of relationship this is
     var relationship = this.relationshipFor(propertyName);
     var isHasMany = relationship && relationship.kind === 'hasMany';
@@ -95,7 +95,7 @@ export default Ember.Mixin.create({
       //run.next, so that aborted promise gets rejected before starting another
       Ember.run.next(this, function () {
         var isLoaded = reference.value() !== null;
-        if (isLoaded) {
+        if (isLoaded || forceReload) {
           resolve(reference.reload());
         } else {
           //isLoaded is false when the last query resulted in an error, so if this load
